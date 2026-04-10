@@ -7,7 +7,57 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Gains">
 <meta name="theme-color" content="#0a0a0a">
+<link rel="apple-touch-icon" id="appIcon" href="#">
 <title>Gains</title>
+<script>
+(function(){
+  try {
+    const c = document.createElement('canvas');
+    c.width = 512; c.height = 512;
+    const ctx = c.getContext('2d');
+    // Polyfill roundRect for Safari < 16 / older Chrome
+    if (typeof ctx.roundRect !== 'function') {
+      CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+        if (typeof r === 'number') r = [r, r, r, r];
+        else if (Array.isArray(r) && r.length === 1) r = [r[0],r[0],r[0],r[0]];
+        else if (!Array.isArray(r)) r = [0,0,0,0];
+        this.moveTo(x + r[0], y);
+        this.lineTo(x + w - r[1], y);
+        this.quadraticCurveTo(x + w, y, x + w, y + r[1]);
+        this.lineTo(x + w, y + h - r[2]);
+        this.quadraticCurveTo(x + w, y + h, x + w - r[2], y + h);
+        this.lineTo(x + r[3], y + h);
+        this.quadraticCurveTo(x, y + h, x, y + h - r[3]);
+        this.lineTo(x, y + r[0]);
+        this.quadraticCurveTo(x, y, x + r[0], y);
+        return this;
+      };
+    }
+    ctx.fillStyle = '#0a0a0a';
+    ctx.beginPath();
+    ctx.roundRect(0,0,512,512,80);
+    ctx.fill();
+    ctx.fillStyle = '#c8f55a';
+    ctx.beginPath();
+    ctx.roundRect(48,48,416,14,7);
+    ctx.fill();
+    ctx.fillStyle = '#f0f0f0';
+    ctx.font = '800 320px system-ui,sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('W', 256, 295);
+    ctx.fillStyle = '#c8f55a';
+    ctx.beginPath();
+    ctx.arc(256, 438, 20, 0, Math.PI*2);
+    ctx.fill();
+    document.getElementById('appIcon').href = c.toDataURL('image/png');
+  } catch(e) {
+    // Remove the dangling icon link so browsers don't request "#"
+    const link = document.getElementById('appIcon');
+    if (link) link.remove();
+  }
+})();
+</script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
@@ -101,6 +151,21 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .complete-btn.ready{background:var(--accent);color:#0a0a0a;}
 .complete-btn.ready:active{transform:scale(0.98);}
 .complete-btn.done{background:var(--accent-dim);color:var(--accent);border:1px solid rgba(200,245,90,0.3);cursor:default;}
+
+/* Undo button */
+.undo-btn{width:100%;margin-top:6px;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:transparent;color:var(--text3);font-family:var(--font-display);font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s;}
+.undo-btn:hover{color:var(--red);border-color:rgba(255,90,90,0.3);background:var(--red-dim);}
+
+/* Confirm modal */
+.confirm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:300;align-items:center;justify-content:center;padding:24px;}
+.confirm-overlay.open{display:flex;}
+.confirm-box{background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);padding:24px;width:100%;max-width:340px;}
+.confirm-title{font-size:18px;font-weight:800;margin-bottom:6px;}
+.confirm-sub{font-size:13px;color:var(--text2);font-family:var(--font-mono);line-height:1.6;margin-bottom:20px;}
+.confirm-btns{display:flex;flex-direction:column;gap:8px;}
+.confirm-ok{padding:13px;border-radius:var(--radius-sm);background:var(--accent);color:#0a0a0a;border:none;font-family:var(--font-display);font-size:14px;font-weight:800;cursor:pointer;transition:opacity 0.15s;}
+.confirm-ok:active{opacity:0.85;}
+.confirm-cancel{padding:12px;border-radius:var(--radius-sm);background:transparent;border:1px solid var(--border2);color:var(--text2);font-family:var(--font-display);font-size:14px;cursor:pointer;}
 
 /* Next week */
 .next-week-section{margin:20px 16px 0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;}
@@ -254,6 +319,14 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .plate-quick-btn{padding:10px 6px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:14px;font-weight:700;font-family:var(--font-mono);cursor:pointer;text-align:center;transition:all 0.15s;}
 .plate-quick-btn:active{background:var(--accent-dim);color:var(--accent);border-color:rgba(200,245,90,0.3);}
 .plate-quick-sub{font-size:10px;color:var(--text3);margin-top:2px;font-weight:400;}
+
+/* Onboarding */
+.onboard-overlay{position:fixed;inset:0;background:var(--bg);z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;}
+.onboard-overlay.hidden{display:none;}
+.onboard-logo{font-size:56px;font-weight:800;letter-spacing:-0.04em;color:var(--text);margin-bottom:6px;line-height:1;}
+.onboard-logo span{color:var(--accent);}
+.onboard-tagline{font-size:12px;font-family:var(--font-mono);color:var(--text3);margin-bottom:48px;letter-spacing:0.04em;}
+.onboard-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;width:100%;max-width:360px;}
 </style>
 </head>
 <body>
@@ -264,15 +337,31 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   <div id="screen-plates" class="screen"></div>
   <div id="screen-settings" class="screen"></div>
   <nav class="nav">
-    <button class="nav-btn active" onclick="switchScreen('tracker')" id="nav-tracker"><span class="nav-icon">💪</span>This Week</button>
-    <button class="nav-btn" onclick="switchScreen('trends')" id="nav-trends"><span class="nav-icon">📈</span>Trends</button>
-    <button class="nav-btn" onclick="switchScreen('history')" id="nav-history"><span class="nav-icon">📋</span>History</button>
-    <button class="nav-btn" onclick="switchScreen('plates')" id="nav-plates"><span class="nav-icon">🏋️</span>Plates</button>
-    <button class="nav-btn" onclick="switchScreen('settings')" id="nav-settings"><span class="nav-icon">⚙️</span>Settings</button>
+    <button class="nav-btn active" onclick="switchScreen('tracker')" id="nav-tracker" aria-label="This week"><span class="nav-icon">💪</span>This Week</button>
+    <button class="nav-btn" onclick="switchScreen('trends')" id="nav-trends" aria-label="Trends"><span class="nav-icon">📈</span>Trends</button>
+    <button class="nav-btn" onclick="switchScreen('history')" id="nav-history" aria-label="History"><span class="nav-icon">📋</span>History</button>
+    <button class="nav-btn" onclick="switchScreen('plates')" id="nav-plates" aria-label="Plate calculator"><span class="nav-icon">🏋️</span>Plates</button>
+    <button class="nav-btn" onclick="switchScreen('settings')" id="nav-settings" aria-label="Settings"><span class="nav-icon">⚙️</span>Settings</button>
   </nav>
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- Onboarding -->
+<div class="onboard-overlay hidden" id="onboardOverlay">
+  <div class="onboard-logo">W<span>.</span></div>
+  <div class="onboard-tagline">your workout tracker</div>
+  <div class="onboard-card">
+    <div style="font-size:18px;font-weight:800;margin-bottom:4px">When does your week start?</div>
+    <div style="font-size:12px;font-family:var(--font-mono);color:var(--text2);margin-bottom:20px;line-height:1.6">Pick your first Tuesday. This sets the date range shown each week.</div>
+    <div style="margin-bottom:20px;">
+      <label style="font-size:11px;font-family:var(--font-mono);color:var(--text2);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px;display:block">Start date (Tuesday)</label>
+      <input type="date" id="onboardDate" style="width:100%;padding:12px 14px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:var(--font-mono);font-size:15px;outline:none;-webkit-appearance:none;">
+      <div style="font-size:11px;font-family:var(--font-mono);color:var(--text3);margin-top:6px">Defaults to this coming Tuesday — adjust if needed.</div>
+    </div>
+    <button onclick="finishOnboarding()" style="width:100%;padding:15px;background:var(--accent);color:#0a0a0a;border:none;border-radius:var(--radius-sm);font-family:var(--font-display);font-size:16px;font-weight:800;cursor:pointer;">Let's go →</button>
+  </div>
+</div>
 
 <!-- Add Exercise Modal -->
 <div class="modal-overlay" id="addExModal">
@@ -282,6 +371,18 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 <!-- Next Week Modal -->
 <div class="nw-modal-overlay" id="nwModal">
   <div class="nw-modal" id="nwModalContent"></div>
+</div>
+
+<!-- Confirm Modal -->
+<div class="confirm-overlay" id="confirmModal" onclick="if(event.target===this)closeConfirm()">
+  <div class="confirm-box">
+    <div class="confirm-title" id="confirmTitle"></div>
+    <div class="confirm-sub" id="confirmSub"></div>
+    <div class="confirm-btns">
+      <button class="confirm-ok" id="confirmOkBtn" onclick="confirmOk()"></button>
+      <button class="confirm-cancel" onclick="closeConfirm()">Cancel</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -376,8 +477,8 @@ function makeExInstance(exId, overrideWeight) {
 
 function makeCustomInstance(name) {
   return {
-    iid: 'custom_' + Date.now(),
-    id: 'custom',
+    iid: 'custom_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+    id: 'custom_' + Date.now() + '_' + Math.random().toString(36).slice(2,5),
     name,
     sets: 3, repRange: [7,10], weight: 45,
     reps: [8,8,8],
@@ -386,8 +487,8 @@ function makeCustomInstance(name) {
   };
 }
 
-function makeWeekState(weekNum, prevDayExercises) {
-  const week = { weekNum, startDate: new Date().toISOString().split('T')[0], days: {}, status: {} };
+function makeWeekState(weekNum, prevDayExercises, startDate) {
+  const week = { weekNum, startDate: startDate || getUpcomingTuesday(), days: {}, status: {} };
   DEFAULT_DAYS.forEach(day => {
     week.status[day.id] = 'pending';
     if (prevDayExercises && prevDayExercises[day.id]) {
@@ -415,15 +516,11 @@ function saveState() {
 }
 
 let appState = loadState();
-if (!appState) {
-  appState = { currentWeek: makeWeekState(1), history: [], customLibrary: [] };
-  saveState();
-}
-if (!appState.customLibrary) { appState.customLibrary = []; }
+if (appState && !appState.customLibrary) { appState.customLibrary = []; }
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
-function getDayExercises(dayId) { return appState.currentWeek.days[dayId] || []; }
-function getDayStatus(dayId) { return appState.currentWeek.status[dayId] || 'pending'; }
+function getDayExercises(dayId) { return appState?.currentWeek?.days[dayId] || []; }
+function getDayStatus(dayId) { return appState?.currentWeek?.status[dayId] || 'pending'; }
 
 function allLiftDaysComplete() {
   return DEFAULT_DAYS.every(d => ['completed','skipped'].includes(getDayStatus(d.id)));
@@ -438,13 +535,14 @@ function getDayTags(dayId) {
   const tags = new Set();
   exs.forEach(ex => {
     if (ex.type === 'cardio') { tags.add(ex.name); return; }
+    if (ex.custom || ex.isUserCreated) { tags.add('Custom'); return; }
     for (const [catKey, cat] of Object.entries(LIBRARY)) {
-      if (cat.exercises.some(e => e.id === ex.id || ex.id === 'custom')) {
-        if (catKey !== 'cardio') tags.add(cat.label);
+      if (catKey === 'cardio') continue;
+      if (cat.exercises.some(e => e.id === ex.id)) {
+        tags.add(cat.label);
       }
     }
   });
-  if (exs.some(e => e.custom)) tags.add('Custom');
   if (tags.size === 0) tags.add('Rest');
   return [...tags];
 }
@@ -455,9 +553,47 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2200);
 }
 
+function localDateStr(d) {
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function getUpcomingTuesday() {
+  const d = new Date();
+  const day = d.getDay(); // 0=Sun,1=Mon,2=Tue,...
+  const daysUntilTue = day === 2 ? 0 : day < 2 ? 2 - day : 9 - day;
+  d.setDate(d.getDate() + daysUntilTue);
+  return localDateStr(d);
+}
+
+// Snap any date string to the nearest Tuesday (preferring same week)
+function snapToTuesday(dateStr) {
+  const d = new Date(dateStr + 'T12:00:00');
+  if (isNaN(d.getTime())) return getUpcomingTuesday();
+  const day = d.getDay();
+  // Distance to nearest Tuesday: 0=Sun(+2), 1=Mon(+1), 2=Tue(0), 3=Wed(-1), 4=Thu(-2), 5=Fri(+4 or -3), 6=Sat(+3 or -4)
+  const offsets = { 0: 2, 1: 1, 2: 0, 3: -1, 4: -2, 5: -3, 6: -4 };
+  d.setDate(d.getDate() + offsets[day]);
+  return localDateStr(d);
+}
+
 function fmtWeekRange(startDate) {
+  // startDate is always a Tuesday; week runs Tue–Sat (+4 days)
   const d = new Date(startDate + 'T12:00:00');
-  const end = new Date(d); end.setDate(end.getDate() + 5);
+  const end = new Date(d);
+  end.setDate(end.getDate() + 4);
   const opts = { month:'short', day:'numeric' };
   return `${d.toLocaleDateString('en-US',opts)} – ${end.toLocaleDateString('en-US',opts)}`;
 }
@@ -465,11 +601,13 @@ function fmtWeekRange(startDate) {
 // ─── SCREEN SWITCHING ─────────────────────────────────────────────────────────
 let currentScreen = 'tracker';
 let openDayId = null;
+let trackerFirstRender = true;
 function switchScreen(name) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('screen-' + name).classList.add('active');
   document.getElementById('nav-' + name).classList.add('active');
+  if (name !== currentScreen && name === 'tracker') trackerFirstRender = true;
   currentScreen = name;
   if (name === 'tracker') renderTracker();
   if (name === 'trends')  renderTrends();
@@ -498,15 +636,16 @@ function renderTracker() {
     const isOpen = openDayId === day.id;
     const cardClass = status === 'completed' ? 'completed' : '';
     const openClass = isOpen ? 'open' : '';
+    const animStyle = trackerFirstRender ? `style="animation:fadeIn 0.3s ${i*0.05}s both"` : '';
 
-    html += `<div class="day-card ${cardClass} ${openClass}" id="daycard-${day.id}" style="animation:fadeIn 0.3s ${i*0.05}s both">
+    html += `<div class="day-card ${cardClass} ${openClass}" id="daycard-${day.id}" ${animStyle}>
       <div class="day-header" onclick="toggleDay('${day.id}')">
         <div class="day-header-left">
           <div class="day-dot"></div>
           <div><div class="day-name">${day.label}</div></div>
         </div>
         <div style="display:flex;align-items:center;gap:6px">
-          <div class="day-tags">${tags.map(t => `<span class="day-type-tag">${t}</span>`).join('')}</div>
+          <div class="day-tags">${tags.map(t => `<span class="day-type-tag">${escapeHtml(t)}</span>`).join('')}</div>
           <span class="day-chevron">▼</span>
         </div>
       </div>
@@ -523,9 +662,9 @@ function renderTracker() {
         const cdone = ex.cardioComplete;
         html += `<div class="bball-item" ${locked}>
           <div class="bball-item-left">
-            <span class="bball-emoji-sm">${ex.icon || '🏃'}</span>
+            <span class="bball-emoji-sm">${escapeHtml(ex.icon || '🏃')}</span>
             <div>
-              <div class="bball-item-name">${ex.name}</div>
+              <div class="bball-item-name">${escapeHtml(ex.name)}</div>
               <div class="bball-item-sub">${cdone ? 'Done!' : 'Tap to mark complete'}</div>
             </div>
           </div>
@@ -556,7 +695,7 @@ function renderTracker() {
         html += `<div class="exercise-item" ${locked}>
           ${status !== 'completed' ? `<button class="ex-remove-btn" onclick="removeExercise('${day.id}','${ex.iid}')">×</button>` : ''}
           <div class="ex-top">
-            <div><div class="ex-name">${ex.name}</div><div class="ex-sub">${ex.sets} sets × ${ex.repRange[0]}–${ex.repRange[1]} reps</div></div>
+            <div><div class="ex-name">${escapeHtml(ex.name)}</div><div class="ex-sub">${ex.sets} sets × ${ex.repRange[0]}–${ex.repRange[1]} reps</div></div>
             <div class="ex-weight-ctrl">
               <button class="ctrl-btn" onclick="changeWeight('${day.id}','${ex.iid}',-5)">−</button>
               <div style="text-align:center">
@@ -567,7 +706,7 @@ function renderTracker() {
             </div>
           </div>
           <div class="sets-grid">${setsHtml}</div>
-          ${hint}
+          <div id="hint-${ex.iid}">${hint}</div>
         </div>`;
       }
     });
@@ -579,9 +718,10 @@ function renderTracker() {
 
     // Complete button
     if (status === 'pending') {
-      html += `<button class="complete-btn ready" onclick="completeDay('${day.id}')">Complete session ✓</button>`;
+      html += `<button class="complete-btn ready" onclick="confirmCompleteDay('${day.id}')">Complete session ✓</button>`;
     } else if (status === 'completed') {
       html += `<button class="complete-btn done" disabled>✓ Session complete</button>`;
+      html += `<button class="undo-btn" onclick="undoCompleteDay('${day.id}')">↩ Undo completion</button>`;
     }
 
     html += `</div></div>`;
@@ -599,6 +739,7 @@ function renderTracker() {
 
   html += '<div style="height:16px"></div>';
   screen.innerHTML = html;
+  trackerFirstRender = false;
 }
 
 function toggleDay(dayId) {
@@ -617,9 +758,17 @@ function changeReps(dayId, iid, setIdx, delta) {
   if (!ex) return;
   ex.reps[setIdx] = Math.max(0, Math.min(20, ex.reps[setIdx] + delta));
   saveState();
-  document.getElementById(`rep-${iid}-${setIdx}`).textContent = ex.reps[setIdx];
-  // Re-render just the hint
-  renderTracker();
+  const repEl = document.getElementById(`rep-${iid}-${setIdx}`);
+  if (repEl) repEl.textContent = ex.reps[setIdx];
+  // Update hint without full re-render
+  const hintEl = document.getElementById(`hint-${iid}`);
+  if (hintEl) {
+    const allMax = ex.reps.every(r => r >= ex.repRange[1]);
+    const allMin = ex.reps.every(r => r >= ex.repRange[0]);
+    if (allMax) hintEl.innerHTML = `<div class="progress-hint hint-up">↑ Ready to increase weight next week</div>`;
+    else if (allMin) hintEl.innerHTML = `<div class="progress-hint hint-good">● Good range — keep building</div>`;
+    else hintEl.innerHTML = `<div class="progress-hint hint-stay">Target: ${ex.repRange[0]}–${ex.repRange[1]} reps</div>`;
+  }
 }
 
 function changeWeight(dayId, iid, delta) {
@@ -646,12 +795,56 @@ function removeExercise(dayId, iid) {
   showToast('Exercise removed');
 }
 
+function confirmCompleteDay(dayId) {
+  const day = DEFAULT_DAYS.find(d => d.id === dayId);
+  showConfirm(
+    'Complete session?',
+    `This will lock in ${day.label}'s session. You can undo this afterward if needed.`,
+    'Complete ✓',
+    () => completeDay(dayId)
+  );
+}
+
 function completeDay(dayId) {
   appState.currentWeek.status[dayId] = 'completed';
   saveState();
   showToast('Session locked in 💪');
   openDayId = null;
   renderTracker();
+}
+
+function undoCompleteDay(dayId) {
+  const day = DEFAULT_DAYS.find(d => d.id === dayId);
+  showConfirm(
+    'Undo completion?',
+    `This will reopen ${day.label}'s session so you can make changes.`,
+    'Undo',
+    () => {
+      appState.currentWeek.status[dayId] = 'pending';
+      saveState();
+      openDayId = dayId;
+      showToast('Session reopened');
+      renderTracker();
+    }
+  );
+}
+
+// ─── CONFIRM MODAL ────────────────────────────────────────────────────────────
+let confirmCallback = null;
+function showConfirm(title, sub, okLabel, onOk) {
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmSub').textContent = sub;
+  document.getElementById('confirmOkBtn').textContent = okLabel;
+  confirmCallback = onOk;
+  document.getElementById('confirmModal').classList.add('open');
+}
+function closeConfirm() {
+  document.getElementById('confirmModal').classList.remove('open');
+  confirmCallback = null;
+}
+function confirmOk() {
+  if (confirmCallback) confirmCallback();
+  closeConfirm();
 }
 
 // ─── ADD EXERCISE MODAL ───────────────────────────────────────────────────────
@@ -674,7 +867,7 @@ function renderAddModal() {
   const q = filterQuery.toLowerCase();
   let html = `<div class="modal-title">Add exercise</div>
     <div class="modal-sub">Choose from the library or add a one-time custom entry</div>
-    <input class="modal-search" placeholder="Search exercises…" value="${q}" oninput="filterModal(this.value)" id="modalSearch">`;
+    <input class="modal-search" placeholder="Search exercises…" value="${escapeHtml(filterQuery)}" oninput="filterModal(this.value)" id="modalSearch">`;
 
   // My exercises section first if any match
   const myExs = (appState.customLibrary || []).filter(e => !q || e.name.toLowerCase().includes(q));
@@ -683,8 +876,8 @@ function renderAddModal() {
     myExs.forEach(ex => {
       html += `<div class="ex-option" onclick="addExerciseToDay('${ex.id}')">
         <div>
-          <div class="ex-option-name">${ex.name} <span class="user-badge">mine</span></div>
-          <div class="ex-option-tag">${ex.categoryLabel} · ${ex.sets}×${ex.repRange[0]}–${ex.repRange[1]}</div>
+          <div class="ex-option-name">${escapeHtml(ex.name)} <span class="user-badge">mine</span></div>
+          <div class="ex-option-tag">${escapeHtml(ex.categoryLabel)} · ${ex.sets}×${ex.repRange[0]}–${ex.repRange[1]}</div>
         </div>
         <span class="ex-option-icon">⭐</span>
       </div>`;
@@ -698,7 +891,7 @@ function renderAddModal() {
     filtered.forEach(ex => {
       const icon = ex.icon || (catKey === 'chest' ? '🏋️' : catKey === 'back' ? '🔙' : catKey === 'biceps' ? '💪' : catKey === 'shoulders' ? '🎯' : catKey === 'triceps' ? '💥' : '🏃');
       html += `<div class="ex-option" onclick="addExerciseToDay('${ex.id}')">
-        <div><div class="ex-option-name">${ex.name}</div><div class="ex-option-tag">${cat.label}${ex.type === 'cardio' ? '' : ` · ${ex.sets}×${ex.repRange[0]}–${ex.repRange[1]}`}</div></div>
+        <div><div class="ex-option-name">${escapeHtml(ex.name)}</div><div class="ex-option-tag">${cat.label}${ex.type === 'cardio' ? '' : ` · ${ex.sets}×${ex.repRange[0]}–${ex.repRange[1]}`}</div></div>
         <span class="ex-option-icon">${icon}</span>
       </div>`;
     });
@@ -712,12 +905,33 @@ function renderAddModal() {
     <button class="modal-cancel" onclick="closeAddModal()">Cancel</button>`;
 
   document.getElementById('addExModalContent').innerHTML = html;
-  setTimeout(() => { const s = document.getElementById('modalSearch'); if(s) s.focus(); }, 100);
+  applyModalFilter();
+  setTimeout(() => { const s = document.getElementById('modalSearch'); if(s && document.activeElement !== s) s.focus(); }, 50);
+}
+
+function applyModalFilter() {
+  const q = (filterQuery || '').toLowerCase();
+  const opts = document.querySelectorAll('#addExModalContent .ex-option');
+  const sectionVisible = new Map();
+  opts.forEach(el => {
+    const name = el.querySelector('.ex-option-name')?.textContent || '';
+    const match = !q || name.toLowerCase().includes(q);
+    el.style.display = match ? '' : 'none';
+    // Track section visibility
+    let prev = el.previousElementSibling;
+    while (prev && !prev.classList.contains('modal-section-title')) prev = prev.previousElementSibling;
+    if (prev) {
+      sectionVisible.set(prev, (sectionVisible.get(prev) || 0) + (match ? 1 : 0));
+    }
+  });
+  sectionVisible.forEach((count, header) => {
+    header.style.display = count > 0 ? '' : 'none';
+  });
 }
 
 function filterModal(val) {
   filterQuery = val;
-  renderAddModal();
+  applyModalFilter();
 }
 
 function addExerciseToDay(exId) {
@@ -783,7 +997,7 @@ function renderNWModal() {
       const on = nwToggles[ex.iid];
       const newW = ex.weight + 5;
       html += `<div class="nw-exercise-row">
-        <div class="nw-ex-name">${ex.name}</div>
+        <div class="nw-ex-name">${escapeHtml(ex.name)}</div>
         <div style="display:flex;align-items:center;gap:8px">
           <span class="nw-tag ${on ? 'tag-up' : 'tag-stay'}" id="nwtag-${ex.iid}">${on ? `+5 → ${newW} lbs` : `Stay ${ex.weight} lbs`}</span>
           <div class="nw-toggle ${on ? 'on' : ''}" id="nwtog-${ex.iid}" onclick="toggleNW('${ex.iid}','${day.id}')"></div>
@@ -793,7 +1007,7 @@ function renderNWModal() {
     html += `</div>`;
   });
 
-  html += `<button class="nw-confirm-btn" onclick="confirmNextWeek()">Confirm & start week ${appState.currentWeek.weekNum + 1} →</button>
+  html += `<button class="nw-confirm-btn" onclick="confirmBeforeNextWeek()">Confirm & start week ${appState.currentWeek.weekNum + 1} →</button>
     <button onclick="closeNWModal()" style="width:100%;margin-top:10px;padding:12px;background:none;border:none;color:var(--text2);font-family:var(--font-display);font-size:14px;cursor:pointer">Cancel</button>`;
 
   document.getElementById('nwModalContent').innerHTML = html;
@@ -810,9 +1024,25 @@ function toggleNW(iid, dayId) {
   tag.textContent = on ? `+5 → ${ex.weight + 5} lbs` : `Stay ${ex.weight} lbs`;
 }
 
+function confirmBeforeNextWeek() {
+  const nextNum = appState.currentWeek.weekNum + 1;
+  showConfirm(
+    `Start week ${nextNum}?`,
+    'This will archive the current week and apply your weight changes. This cannot be undone.',
+    `Start week ${nextNum} →`,
+    () => { closeNWModal(); confirmNextWeek(); }
+  );
+}
+
 function confirmNextWeek() {
   appState.history.unshift(JSON.parse(JSON.stringify(appState.currentWeek)));
   const newWeekNum = appState.currentWeek.weekNum + 1;
+
+  // Compute next Tuesday from current week's startDate
+  const prevStart = new Date(appState.currentWeek.startDate + 'T12:00:00');
+  const nextStart = new Date(prevStart);
+  nextStart.setDate(prevStart.getDate() + 7);
+  const nextStartDate = localDateStr(nextStart);
 
   // Build prev exercises structure with updated weights
   const prevDayExercises = {};
@@ -826,10 +1056,12 @@ function confirmNextWeek() {
     });
   });
 
-  appState.currentWeek = makeWeekState(newWeekNum, prevDayExercises);
+  appState.currentWeek = makeWeekState(newWeekNum, prevDayExercises, nextStartDate);
   saveState();
   closeNWModal();
   openDayId = null;
+  nwToggles = {};
+  trackerFirstRender = true;
   showToast(`Week ${newWeekNum} started! 🚀`);
   renderTracker();
 }
@@ -841,7 +1073,9 @@ let selectedTrendExId = 'bench';
 function getAllLiftExIds() {
   const seen = new Set();
   const all = [];
-  const allWeeks = [appState.currentWeek, ...appState.history];
+  // Limit to current + last 8 history weeks so the chip strip doesn't grow forever
+  const recentHistory = appState.history.slice(0, 8);
+  const allWeeks = [appState.currentWeek, ...recentHistory];
   allWeeks.forEach(w => {
     DEFAULT_DAYS.forEach(day => {
       (w.days[day.id] || []).forEach(ex => {
@@ -867,7 +1101,7 @@ function renderTrends() {
   }
 
   let chips = liftExIds.map(e =>
-    `<button class="ex-chip ${e.id === selectedTrendExId ? 'active' : ''}" onclick="selectTrendEx('${e.id}')">${e.name}</button>`
+    `<button class="ex-chip ${e.id === selectedTrendExId ? 'active' : ''}" onclick="selectTrendEx('${e.id}')">${escapeHtml(e.name)}</button>`
   ).join('');
 
   // Consistency cells — last 4 weeks × 5 days
@@ -898,7 +1132,7 @@ function renderTrends() {
       <div class="metric-grid">
         <div class="metric-card"><div class="metric-val">${totalWeeks}</div><div class="metric-lbl">Weeks tracked</div></div>
         <div class="metric-card"><div class="metric-val">${totalCompleted}</div><div class="metric-lbl">Sessions done</div></div>
-        <div class="metric-card"><div class="metric-val">${bestLift}</div><div class="metric-lbl">Top weight (lbs)</div></div>
+        <div class="metric-card"><div class="metric-val">${bestLift}</div><div class="metric-lbl">All-time max (lbs)</div></div>
         <div class="metric-card"><div class="metric-val">${compRate}%</div><div class="metric-lbl">Completion rate</div></div>
       </div>
       <div class="chart-card">
@@ -931,15 +1165,27 @@ function renderProgressChart() {
   const allWeeks = [...appState.history, appState.currentWeek].reverse();
   const labels = allWeeks.map(w => `Wk ${w.weekNum}`);
   const data = allWeeks.map(w => {
+    let max = null;
     for (const day of DEFAULT_DAYS) {
-      const ex = (w.days[day.id] || []).find(e => e.id === selectedTrendExId);
-      if (ex) return ex.weight;
+      (w.days[day.id] || []).forEach(ex => {
+        if (ex.id === selectedTrendExId && ex.type !== 'cardio') {
+          if (max === null || ex.weight > max) max = ex.weight;
+        }
+      });
     }
-    return null;
+    return max;
   });
 
   const canvas = document.getElementById('progressChart');
   if (!canvas) return;
+  if (typeof Chart === 'undefined') {
+    // Chart.js failed to load (offline, CDN blocked) — show a friendly fallback
+    const wrap = canvas.parentElement;
+    if (wrap) {
+      wrap.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:12px;color:var(--text3);font-family:var(--font-mono);text-align:center;padding:20px">Chart unavailable offline.<br>Connect once to load the chart library.</div>`;
+    }
+    return;
+  }
   if (trendsChart) { trendsChart.destroy(); trendsChart = null; }
   trendsChart = new Chart(canvas, {
     type: 'line',
@@ -1002,7 +1248,7 @@ function renderHistory() {
         html += `<div class="hw-day"><div class="hw-day-name">${day.label}</div>`;
         exs.forEach(ex => {
           html += `<div class="hw-ex-row">
-            <span class="hw-ex-name">${ex.name}</span>
+            <span class="hw-ex-name">${escapeHtml(ex.name)}</span>
             <span class="hw-ex-data">${ex.weight} lbs × [${(ex.reps||[]).join(', ')}]</span>
           </div>`;
         });
@@ -1049,8 +1295,8 @@ function renderSettings() {
     myExListHtml = `<div class="my-ex-list">` + myExs.map(ex => `
       <div class="my-ex-item">
         <div class="my-ex-item-left">
-          <div class="my-ex-item-name">${ex.name}</div>
-          <div class="my-ex-item-cat">${ex.categoryLabel} · 3×7–10</div>
+          <div class="my-ex-item-name">${escapeHtml(ex.name)}</div>
+          <div class="my-ex-item-cat">${escapeHtml(ex.categoryLabel)} · 3×7–10</div>
         </div>
         <button class="my-ex-delete" onclick="deleteCustomEx('${ex.id}')">×</button>
       </div>`).join('') + `</div>`;
@@ -1077,7 +1323,7 @@ function renderSettings() {
       <div style="font-size:16px;font-weight:700;margin-bottom:12px;padding:0 2px">Install as app</div>
       <div class="install-card">
         <div class="install-title">Add to Home Screen</div>
-        <div class="install-text">iPhone: tap Share in Safari → "Add to Home Screen".<br>Android: tap menu → "Add to Home Screen". Works offline once installed.</div>
+        <div class="install-text">iPhone: tap Share in Safari → "Add to Home Screen".<br>Android: tap menu → "Add to Home Screen".<br><br>Your data stays on your device. Some features (charts) require a connection on first load.</div>
       </div>
 
       <div style="font-size:16px;font-weight:700;margin-bottom:12px;padding:0 2px">Data</div>
@@ -1105,7 +1351,7 @@ function renderSettings() {
         </div>
       </div>
       <div style="text-align:center;padding:20px 0;font-size:11px;font-family:var(--font-mono);color:var(--text3)">
-        Gains v3.0 · Week ${appState.currentWeek.weekNum} · ${appState.history.length} weeks in history
+        Gains v3.0 · Week ${appState?.currentWeek?.weekNum ?? '–'} · ${appState?.history?.length ?? 0} weeks in history
       </div>
     </div>`;
 }
@@ -1133,48 +1379,111 @@ function saveCustomEx() {
 }
 
 function deleteCustomEx(exId) {
-  if (!confirm('Remove this exercise from your library?')) return;
-  appState.customLibrary = (appState.customLibrary || []).filter(e => e.id !== exId);
-  saveState();
-  showToast('Exercise removed');
-  renderSettings();
+  showConfirm(
+    'Remove exercise?',
+    'This removes it from your custom library. Existing weeks that already include it are unaffected.',
+    'Remove',
+    () => {
+      appState.customLibrary = (appState.customLibrary || []).filter(e => e.id !== exId);
+      saveState();
+      showToast('Exercise removed');
+      renderSettings();
+    }
+  );
 }
 
 function exportData() {
   const blob = new Blob([JSON.stringify(appState, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = `gains-backup-w${appState.currentWeek.weekNum}.json`; a.click();
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `gains-backup-w${appState.currentWeek.weekNum}-${localDateStr(new Date())}.json`;
+  a.click();
   URL.revokeObjectURL(url);
   showToast('Exported!');
+}
+
+function validateImportedState(obj) {
+  if (!obj || typeof obj !== 'object') return false;
+  if (!obj.currentWeek || typeof obj.currentWeek !== 'object') return false;
+  if (typeof obj.currentWeek.weekNum !== 'number') return false;
+  if (typeof obj.currentWeek.startDate !== 'string') return false;
+  if (!obj.currentWeek.days || typeof obj.currentWeek.days !== 'object') return false;
+  if (!obj.currentWeek.status || typeof obj.currentWeek.status !== 'object') return false;
+  if (!Array.isArray(obj.history)) return false;
+  return true;
 }
 
 function importData(e) {
   const file = e.target.files[0]; if (!file) return;
   const reader = new FileReader();
   reader.onload = ev => {
-    try {
-      appState = JSON.parse(ev.target.result);
-      saveState(); showToast('Imported!'); renderSettings();
-    } catch { showToast('Import failed'); }
+    let parsed;
+    try { parsed = JSON.parse(ev.target.result); }
+    catch { showToast('Import failed — invalid JSON'); e.target.value = ''; return; }
+    if (!validateImportedState(parsed)) { showToast('Import failed — invalid backup format'); e.target.value = ''; return; }
+    appState = parsed;
+    if (!appState.customLibrary) appState.customLibrary = [];
+    saveState();
+    showToast('Imported!');
+    trackerFirstRender = true;
+    renderSettings();
   };
+  reader.onerror = () => { showToast('Import failed — could not read file'); e.target.value = ''; };
   reader.readAsText(file);
+  e.target.value = ''; // allow re-importing same filename
 }
 
 function resetWeek() {
-  if (!confirm('Reset current week? History is kept.')) return;
-  appState.currentWeek = makeWeekState(appState.currentWeek.weekNum);
-  saveState(); openDayId = null; showToast('Week reset'); renderTracker();
+  showConfirm(
+    'Reset current week?',
+    'Clears all exercises, weights, and reps for this week. Custom exercises added during the week will be lost. History is kept.',
+    'Reset week',
+    () => {
+      const startDate = appState.currentWeek.startDate;
+      appState.currentWeek = makeWeekState(appState.currentWeek.weekNum, null, startDate);
+      saveState();
+      openDayId = null;
+      trackerFirstRender = true;
+      showToast('Week reset');
+      renderSettings();
+    }
+  );
 }
 
 function clearAll() {
-  if (!confirm('Clear ALL data? This cannot be undone.')) return;
-  appState = { currentWeek: makeWeekState(1), history: [] };
-  saveState(); openDayId = null; showToast('Cleared'); switchScreen('tracker');
+  showConfirm(
+    'Clear ALL data?',
+    'Wipes current week, history, and custom exercises. This cannot be undone.',
+    'Clear everything',
+    () => {
+      localStorage.removeItem('gains_v3');
+      appState = null;
+      openDayId = null;
+      currentScreen = 'tracker';
+      selectedTrendExId = 'bench';
+      nwToggles = {};
+      trackerFirstRender = true;
+      if (trendsChart) { trendsChart.destroy(); trendsChart = null; }
+      showToast('All data cleared');
+      const dateInput = document.getElementById('onboardDate');
+      if (dateInput) dateInput.value = getUpcomingTuesday();
+      document.getElementById('onboardOverlay').classList.remove('hidden');
+    }
+  );
 }
 
 // Close modals on backdrop tap
 document.getElementById('addExModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeAddModal(); });
 document.getElementById('nwModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeNWModal(); });
+
+// Escape key closes any open modal
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if (document.getElementById('confirmModal').classList.contains('open')) { closeConfirm(); return; }
+  if (document.getElementById('nwModal').classList.contains('open')) { closeNWModal(); return; }
+  if (document.getElementById('addExModal').classList.contains('open')) { closeAddModal(); return; }
+});
 
 // ─── PLATE CALCULATOR ─────────────────────────────────────────────────────────
 const PLATE_SETS = {
@@ -1220,6 +1529,7 @@ function calcPlates(target, barWeight, availPlates) {
 function renderPlates() {
   const screen = document.getElementById('screen-plates');
   const barWeight = BAR_WEIGHTS[plateBar] ?? 45;
+  const isDumbbell = plateBar === 'DB';
   const available = PLATE_SETS[plateSetting];
   const plates = calcPlates(plateTarget, barWeight, available);
   const sideWeight = (plateTarget - barWeight) / 2;
@@ -1257,8 +1567,14 @@ function renderPlates() {
 
     const makePlateEl = (w) => {
       const c = PLATE_COLORS[w] || PLATE_COLORS[45];
-      const h = Math.max(32, Math.min(72, 20 + w));
-      const width = w >= 35 ? 18 : w >= 10 ? 14 : 12;
+      // Tiered sizing so 5 and 2.5 don't collapse to identical visuals
+      let h, width;
+      if (w >= 45)      { h = 72; width = 18; }
+      else if (w >= 35) { h = 62; width = 18; }
+      else if (w >= 25) { h = 54; width = 16; }
+      else if (w >= 10) { h = 42; width = 14; }
+      else if (w >= 5)  { h = 32; width = 12; }
+      else              { h = 24; width = 10; } // 2.5
       return `<div class="plate-viz" style="height:${h}px;width:${width}px;background:${c.bg};border-color:${c.border};color:${c.text}">${w}</div>`;
     };
 
@@ -1276,11 +1592,16 @@ function renderPlates() {
   // Plate list
   let resultHtml = '';
   if (plates === null) {
-    resultHtml = `<div class="plate-unavail">Can't make ${plateTarget} lbs with available plates.<br>Try a different weight or plate set.</div>`;
+    if (plateTarget < barWeight) {
+      resultHtml = `<div class="plate-unavail">Target (${plateTarget} lbs) is below the bar weight (${barWeight} lbs).<br>Pick a heavier target or a lighter bar.</div>`;
+    } else {
+      resultHtml = `<div class="plate-unavail">Can't make ${plateTarget} lbs exactly with the available plates.<br>Try a different weight or plate set.</div>`;
+    }
   } else if (plates.length === 0) {
     resultHtml = `<div class="plate-unavail">Just the bar — ${barWeight} lbs, no plates needed.</div>`;
   } else {
     const mathParts = [`${barWeight} (bar)`];
+    const sideLabel = isDumbbell ? 'Per dumbbell' : 'Per side';
     resultHtml = `<div class="plate-list">` + plates.map(p => {
       const c = PLATE_COLORS[p.weight] || {};
       mathParts.push(`${p.count}×${p.weight}×2`);
@@ -1290,14 +1611,14 @@ function renderPlates() {
           <span class="plate-row-label">${p.weight} lb plate</span>
         </div>
         <div style="display:flex;gap:16px;align-items:center">
-          <span class="plate-row-count">${p.count} per side</span>
+          <span class="plate-row-count">${p.count} ${isDumbbell ? 'each' : 'per side'}</span>
           <span class="plate-row-weight">${p.weight * p.count * 2} lbs</span>
         </div>
       </div>`;
     }).join('') + `</div>
     <div class="plate-math">
       <strong>${plateTarget} lbs</strong> = ${mathParts.join(' + ')}
-      <br>Each side: <strong>${sideWeight} lbs</strong>
+      <br>${sideLabel}: <strong>${sideWeight} lbs</strong>
     </div>`;
   }
 
@@ -1345,7 +1666,7 @@ function renderPlates() {
       </div>
 
       <div class="plate-result-card">
-        <div class="plate-result-title">Load each side with</div>
+        <div class="plate-result-title">${isDumbbell ? 'Load each dumbbell with' : 'Load each side with'}</div>
         ${vizHtml}
         ${resultHtml}
       </div>
@@ -1375,8 +1696,34 @@ function setPlateSetting(s) {
   renderPlates();
 }
 
+// ─── ONBOARDING ───────────────────────────────────────────────────────────────
+function initApp() {
+  if (!appState || !appState.currentWeek) {
+    // First launch — show onboarding, pre-fill date
+    const dateInput = document.getElementById('onboardDate');
+    if (dateInput) dateInput.value = getUpcomingTuesday();
+    document.getElementById('onboardOverlay').classList.remove('hidden');
+  } else {
+    document.getElementById('onboardOverlay').classList.add('hidden');
+    renderTracker();
+  }
+}
+
+function finishOnboarding() {
+  const dateInput = document.getElementById('onboardDate');
+  const raw = dateInput?.value || getUpcomingTuesday();
+  const startDate = snapToTuesday(raw);
+  appState = { currentWeek: makeWeekState(1, null, startDate), history: [], customLibrary: [] };
+  saveState();
+  document.getElementById('onboardOverlay').classList.add('hidden');
+  trackerFirstRender = true;
+  renderTracker();
+  const wasSnapped = raw !== startDate;
+  showToast(wasSnapped ? `Snapped to Tuesday ${fmtWeekRange(startDate).split('–')[0].trim()} 🚀` : `Week 1 starts ${fmtWeekRange(startDate).split('–')[0].trim()} 🚀`);
+}
+
 // ─── INIT ─────────────────────────────────────────────────────────────────────
-renderTracker();
+initApp();
 </script>
 <style>
 @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
